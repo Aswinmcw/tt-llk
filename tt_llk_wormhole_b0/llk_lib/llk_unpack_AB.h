@@ -16,7 +16,7 @@
 using namespace ckernel;
 using namespace ckernel::unpacker;
 
-template <BroadcastType BType = BroadcastType::NONE>
+template <BroadcastType BType = BroadcastType::NONE, bool reuse_b = false>
 inline void _llk_unpack_AB_mop_config_(const bool transpose_of_faces = false, const std::uint32_t num_faces = 4, const bool narrow_tile = false)
 {
 #if SKIP_UNP == 1
@@ -25,6 +25,8 @@ inline void _llk_unpack_AB_mop_config_(const bool transpose_of_faces = false, co
 #else
     static constexpr uint unpack_srca = TT_OP_UNPACR(SrcA, 0b1, 0, 0, 0, 1, 1, p_unpacr::RAREFYB_DISABLE, 0, 0, 0, 0, 1);
     static constexpr uint unpack_srcb = TT_OP_UNPACR(SrcB, 0b1, 0, 0, 0, 1, 1, p_unpacr::RAREFYB_DISABLE, 0, 0, 0, 0, 1);
+    static constexpr uint unpack_srcb_nop = TT_OP_UNPACR_NOP(SrcB, p_unpacr_nop::UNP_SET_DVALID);
+    static constexpr uint unpack_srcb_zerosrc = TT_OP_UNPACR_NOP(SrcB, p_unpacr_nop::UNP_ZEROSRC);
 #endif
 
     if constexpr (BType == BroadcastType::COL)
@@ -59,7 +61,11 @@ inline void _llk_unpack_AB_mop_config_(const bool transpose_of_faces = false, co
         const uint32_t outerloop = 1;
         const uint32_t innerloop = num_faces;
         ckernel_template tmp(outerloop, innerloop, unpack_srca);
-        tmp.set_start_op(unpack_srcb);
+        if constexpr (reuse_b) {
+            tmp.set_end_ops(unpack_srcb_zerosrc, unpack_srcb_nop);
+        } else {
+            tmp.set_end_op(unpack_srcb);
+        }
         tmp.program(instrn_buffer);
     }
     else
@@ -102,7 +108,7 @@ inline void _llk_unpack_AB_hw_configure_(
         unpA_src_format, unpB_src_format, unpA_dst_format, unpB_dst_format, face_r_dim, face_r_dim, within_face_16x16_transpose, num_faces, num_faces);
 }
 
-template <BroadcastType BType = BroadcastType::NONE>
+template <BroadcastType BType = BroadcastType::NONE, bool reuse_b = false>
 inline void _llk_unpack_AB_init_(
     const std::uint32_t face_r_dim  = FACE_R_DIM,
     const std::uint32_t num_faces   = 4,
@@ -115,7 +121,7 @@ inline void _llk_unpack_AB_init_(
     constexpr std::uint32_t UNP_SEL = p_setadc::UNP_AB;
     config_unpacker_x_end<UNP_SEL>(face_r_dim);
 
-    _llk_unpack_AB_mop_config_<BType>(transpose > 0, num_faces, narrow_tile); // transpose of faces 0,2,1,3
+    _llk_unpack_AB_mop_config_<BType, reuse_b>(transpose > 0, num_faces, narrow_tile); // transpose of faces 0,2,1,3
 }
 
 template <BroadcastType BType = BroadcastType::NONE>
