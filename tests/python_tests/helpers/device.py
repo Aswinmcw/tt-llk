@@ -6,7 +6,10 @@ from ttexalens.tt_exalens_lib import (
     read_words_from_device,
     read_word_from_device,
     run_elf,
+    check_context,
 )
+from ttexalens.debug_risc import RiscDebug, RiscLoc
+from ttexalens.coordinate import OnChipCoordinate
 from helpers import *
 import inspect
 import time
@@ -30,9 +33,8 @@ def run_elf_files(testname, core_loc="0,0", run_brisc=True):
 
     ELF_LOCATION = "../build/elf/"
 
-    if run_brisc:
-        run_elf(f"{ELF_LOCATION}brisc.elf", core_loc, risc_id=0)
-
+    global context
+    context = check_context()
     # for i in range(3):
     #     run_elf(f"{ELF_LOCATION}{testname}_trisc{i}.elf", core_loc, risc_id=i + 1)
 
@@ -42,6 +44,8 @@ def run_elf_files(testname, core_loc="0,0", run_brisc=True):
 
     for i in reversed(range(3)):
         run_elf(f"{ELF_LOCATION}{testname}_trisc{i}.elf", core_loc, risc_id=i + 1)
+    if run_brisc:
+        run_elf(f"{ELF_LOCATION}brisc.elf", core_loc, risc_id=0)
 
 
 def write_stimuli_to_l1(buffer_A, buffer_B, stimuli_format, core_loc="0,0", tile_cnt=1):
@@ -119,11 +123,23 @@ def assert_value_with_timeout(core_loc, mailbox_addr, timeout=0, poll_interval=0
         if read_word_from_device(core_loc, mailbox_addr) == 1:
             return True
         time.sleep(poll_interval)
-
     # If the loop finishes without breaking, that means the condition was never true
+    # assert (
+    #     read_word_from_device(core_loc, mailbox_addr) == 1
+    # ), f"Value at mailbox {hex(mailbox_addr)} was not 1 after waiting {timeout} seconds."
     assert (
         read_word_from_device(core_loc, mailbox_addr) == 1
     ), f"Value at mailbox {hex(mailbox_addr)} was not 1 after waiting {timeout} seconds."
+    try:
+        assert read_word_from_device(core_loc, mailbox_addr) == 1
+    except AssertionError as ae:
+        for i in range(0, 4):
+            loc = OnChipCoordinate.create(core_loc, device=context.devices[0])
+            risc_id = i  # risc[mailbox_addr]
+            rloc = RiscLoc(loc, 0, risc_id)
+            rdbg = RiscDebug(rloc, context, verbose=True)
+            rdbg.set_reset_signal(True)
+        raise ae
 
 
 def assert_tensix_operations_finished(core_loc: str = "0,0"):

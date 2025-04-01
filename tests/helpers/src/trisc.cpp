@@ -29,6 +29,7 @@ int main()
 
     ckernel::reset_cfg_state_id();
     ckernel::reset_dest_offset_id();
+
     ckernel::tensix_sync();
 
     run_kernel();
