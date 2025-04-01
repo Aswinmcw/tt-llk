@@ -7,6 +7,7 @@ from ttexalens.tt_exalens_lib import (
     read_word_from_device,
     run_elf,
     check_context,
+    write_tensix_register,
 )
 from ttexalens.debug_risc import RiscDebug, RiscLoc
 from ttexalens.coordinate import OnChipCoordinate
@@ -14,6 +15,7 @@ from helpers import *
 import inspect
 import time
 from helpers.param_config import *
+from helpers.reset_core import reset_unpack_registers
 
 
 def collect_results(
@@ -127,9 +129,9 @@ def assert_value_with_timeout(core_loc, mailbox_addr, timeout=0, poll_interval=0
     # assert (
     #     read_word_from_device(core_loc, mailbox_addr) == 1
     # ), f"Value at mailbox {hex(mailbox_addr)} was not 1 after waiting {timeout} seconds."
-    assert (
-        read_word_from_device(core_loc, mailbox_addr) == 1
-    ), f"Value at mailbox {hex(mailbox_addr)} was not 1 after waiting {timeout} seconds."
+    # assert (
+    #     read_word_from_device(core_loc, mailbox_addr) == 1
+    # ), f"Value at mailbox {hex(mailbox_addr)} was not 1 after waiting {timeout} seconds."
     try:
         assert read_word_from_device(core_loc, mailbox_addr) == 1
     except AssertionError as ae:
@@ -139,6 +141,7 @@ def assert_value_with_timeout(core_loc, mailbox_addr, timeout=0, poll_interval=0
             rloc = RiscLoc(loc, 0, risc_id)
             rdbg = RiscDebug(rloc, context, verbose=True)
             rdbg.set_reset_signal(True)
+            reset_unpack_registers(context)
         raise ae
 
 
