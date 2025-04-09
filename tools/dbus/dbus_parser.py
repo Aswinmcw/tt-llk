@@ -9,7 +9,7 @@ def Critical(value):
     if USE_WARNINGS_INSTEAD_OF_ERRORS:
         print(f"Critical: {value}")
     else:
-        Critical(value)
+        raise ValueError(value)
 
 def print_daisy(daisy):
     daisy = daisy.copy()
@@ -375,7 +375,7 @@ def split_data(data, path, res):
     te = 31
 
     while True:
-        print(f"Splitting {name} from {ts} to {te}")
+        print(f"Info: Splitting {name} from {ts} to {te}")
 
         offset = ts - start_bit
 
@@ -433,7 +433,7 @@ def prep_for_print(flat_list):
         print_data["name_cnt"] = len(path) - 2
 
         if print_data["end_bit"] > 31:
-            print(print_data)
+            #print(print_data)
             split_data(print_data, path, res)
         else:
             if print_data["fbr_low"] != 0 or print_data["fbr_high"] != path[-1]["width"] - 1:
@@ -454,6 +454,10 @@ def prep_for_print(flat_list):
                     add_name = path[print_data["name_cnt"]]["name"].upper().replace(" ", "_")
                     print_data["name"] = f"{add_name}_{print_data['name']}"
                     print_data["name_cnt"] -= 1
+
+    for print_data, path in res:
+        if not print_data["name"].startswith("DEBUG_BUS_"):
+            print_data["name"] = f"DEBUG_BUS_{print_data['name']}"
 
     return res
 

@@ -10,10 +10,6 @@
 
 // Debug bus and register array dump
 
-#define DEBUG_BUS_TRISC0_PC {2 * 6 + 1, 7, 2, 0, 1, 0}
-#define DEBUG_BUS_TRISC1_PC {2 * 7 + 1, 7, 2, 0, 1, 0}
-#define DEBUG_BUS_TRISC2_PC {2 * 8 + 1, 7, 2, 0, 1, 0}
-
 namespace ckernel
 {
 
