@@ -6,7 +6,6 @@
 import struct
 import torch
 
-
 def unpack_fp16(packed_list, unpack_src, pack_dst):
     def bytes_to_float16(byte_list):
         return struct.unpack("<e", bytes(byte_list))[0]
