@@ -1,9 +1,12 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
 import pytest
 import torch
 from helpers import *
 from conftest import *
 from helpers.output_test_results import *
 from helpers.format_config import *
+
 
 def generate_golden(operand1, format):
     return operand1
@@ -133,7 +136,7 @@ def test_unary_datacopy(testname, formats, dest_acc):
         formats, tensor_size=len(src_A)
     )  # Bug patchup in (unpack.py): passing formats struct to check unpack_src with pack_dst and distinguish when input and output formats have different exponent widths then reading from L1 changes
 
-    # assert len(res_from_L1) == len(golden)
+    assert len(res_from_L1) == len(golden)
 
     if formats.pack_dst in format_dict:
         atol = 0.05
@@ -170,7 +173,7 @@ def test_unary_datacopy(testname, formats, dest_acc):
             else torch.bfloat16
         ),
     )
-    
+
     print("\n", res_from_L1, "\n")
     print("\n", golden, "\n")
 
