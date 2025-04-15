@@ -47,19 +47,10 @@ def run_shell_command(command: str):
 
 
 def calculate_read_byte_count(format: FormatConfig, array_size: int, sfpu=False) -> int:
-    total_bytes = array_size * format.pack_dst.size
-    if format.pack_dst == DataFormat.Bfp8_b:
-        total_bytes += total_bytes // 16
-    return total_bytes
-
-def calculate_read_byte_count(format, sfpu=False):
-    if format not in format_sizes:
-        raise ValueError(f"Unsupported format: {format}")
-
-    if sfpu:  # for now just for 16 bit formats
-        return 256 if format in [DataFormat.Float32, DataFormat.Int32] else 128
-
-    return format_sizes[format]
+     total_bytes = array_size * format.pack_dst.size
+     if format.pack_dst == DataFormat.Bfp8_b:
+         total_bytes += total_bytes // 16
+     return total_bytes
 
 
 def reverse_endian_chunk(input_list, chunk_size=4):

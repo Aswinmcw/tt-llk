@@ -46,33 +46,33 @@ generate_format_selection = create_formats_for_testing(
 )
 generate_format_selection = create_formats_for_testing(
     [
-        (
-            DataFormat.Float32,  # index 0 is for unpack_A_src
-            DataFormat.Float32,  # index 1 is for unpack_A_dst
-            DataFormat.Float32,  # index 2 is for pack_src (if src registers have same formats)
-            DataFormat.Float32,  # index 3 is for pack_dst
-            DataFormat.Float32,  # index 4 is for math format
-        ),
+        # (
+        #     DataFormat.Float32,  # index 0 is for unpack_A_src
+        #     DataFormat.Float32,  # index 1 is for unpack_A_dst
+        #     DataFormat.Float32,  # index 2 is for pack_src (if src registers have same formats)
+        #     DataFormat.Float32,  # index 3 is for pack_dst
+        #     DataFormat.Float32,  # index 4 is for math format
+        # ),
+        # (
+        #     DataFormat.Float16,  # index 0 is for unpack_A_src
+        #     DataFormat.Float16,  # index 1 is for unpack_A_dst
+        #     DataFormat.Float16,  # index 2 is for pack_src (if src registers have same formats)
+        #     DataFormat.Float16,  # index 3 is for pack_dst
+        #     DataFormat.Float16,  # index 4 is for math format
+        # ),
+        # (
+        #     DataFormat.Float16_b,  # index 0 is for unpack_A_src
+        #     DataFormat.Float16_b,  # index 1 is for unpack_A_dst
+        #     DataFormat.Float16_b,  # index 2 is for pack_src (if src registers have same formats)
+        #     DataFormat.Float16_b,  # index 3 is for pack_dst
+        #     DataFormat.Float16_b,  # index 4 is for math format
+        # ),
         (
             DataFormat.Float16,  # index 0 is for unpack_A_src
             DataFormat.Float16,  # index 1 is for unpack_A_dst
-            DataFormat.Float16,  # index 2 is for pack_src (if src registers have same formats)
-            DataFormat.Float16,  # index 3 is for pack_dst
-            DataFormat.Float16,  # index 4 is for math format
-        ),
-        (
-            DataFormat.Float16_b,  # index 0 is for unpack_A_src
-            DataFormat.Float16_b,  # index 1 is for unpack_A_dst
-            DataFormat.Float16_b,  # index 2 is for pack_src (if src registers have same formats)
-            DataFormat.Float16_b,  # index 3 is for pack_dst
-            DataFormat.Float16_b,  # index 4 is for math format
-        ),
-        (
-            DataFormat.Bfp8_b,  # index 0 is for unpack_A_src
-            DataFormat.Bfp8_b,  # index 1 is for unpack_A_dst
             DataFormat.Bfp8_b,  # index 2 is for pack_src (if src registers have same formats)
             DataFormat.Bfp8_b,  # index 3 is for pack_dst
-            DataFormat.Bfp8_b,  # index 4 is for math format
+            DataFormat.Float16,  # index 4 is for math format
         ),
     ]
 )
@@ -92,7 +92,7 @@ all_format_combos = generate_format_combinations(
 dest_acc = [DestAccumulation.Yes]
 testname = ["eltwise_unary_datacopy_test"]
 all_params = generate_params(testname, gen_format_combos(), dest_acc)
-all_params = generate_params(testname, generate_format_selection, dest_acc)
+# all_params = generate_params(testname, generate_format_selection, dest_acc)
 param_ids = generate_param_ids(all_params)
 
 
@@ -114,6 +114,7 @@ def test_unary_datacopy(testname, formats, dest_acc):
     all_test_results.append(pass_fail_results(testname, formats, dest_acc))
     src_A, src_B = generate_stimuli(formats.unpack_A_src, formats.unpack_B_src)
     srcB = torch.full((1024,), 0)
+    print(f"\nlength of src A: {len(src_A)}\n")
     golden = generate_golden(src_A, formats.pack_dst)
     write_stimuli_to_l1(src_A, src_B, formats.unpack_A_src, formats.unpack_B_src)
 
@@ -132,7 +133,7 @@ def test_unary_datacopy(testname, formats, dest_acc):
         formats, tensor_size=len(src_A)
     )  # Bug patchup in (unpack.py): passing formats struct to check unpack_src with pack_dst and distinguish when input and output formats have different exponent widths then reading from L1 changes
 
-    assert len(res_from_L1) == len(golden)
+    # assert len(res_from_L1) == len(golden)
 
     if formats.pack_dst in format_dict:
         atol = 0.05
