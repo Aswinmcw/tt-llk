@@ -66,17 +66,18 @@ all_params = generate_params(
     dest_acc=[DestAccumulation.No],
     reduce_dim=[ReduceDimension.Column],
     pool_type=[ReducePool.Max],  # , ReducePool.Sum, ReducePool.Average],
+    mathop=[MathOperation.ReduceColumn],
 )
 param_ids = generate_param_ids(all_params)
 
 
 @pytest.mark.parametrize(
-    "testname, formats, dest_acc, reduce_dim, pool_type",
+    "testname, formats, dest_acc, reduce_dim, pool_type, mathop",
     clean_params(all_params),
     ids=param_ids,
 )
 # @pytest.mark.skip(reason="Not fully implemented")
-def test_reduce(testname, formats, dest_acc, reduce_dim, pool_type):
+def test_reduce(testname, formats, dest_acc, reduce_dim, pool_type, mathop):
 
     src_A, src_B = generate_stimuli(formats.unpack_A_src, formats.unpack_B_src)
 
@@ -101,7 +102,7 @@ def test_reduce(testname, formats, dest_acc, reduce_dim, pool_type):
         "dest_acc": dest_acc,
         "reduce_dim": reduce_dim,
         "pool_type": pool_type,
-        "mathop": reduce_dim,
+        "mathop": mathop,
     }
 
     make_cmd = generate_make_command(test_config)

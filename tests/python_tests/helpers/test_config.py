@@ -15,6 +15,7 @@ from .format_arg_mapping import (
     ApproximationMode,
     MathOperation,
     ReduceDimension,
+    ReducePool,
 )
 
 
@@ -37,7 +38,7 @@ def generate_make_command(test_config):
     make_cmd += f" math_fidelity={math_fidelity.value} approx_mode={approx_mode.value} "
 
     reduce_dim = test_config.get("reduce_dim", ReduceDimension.No)
-    pool_type = test_config.get("pool_type", ReduceDimension.No)
+    pool_type = test_config.get("pool_type", ReducePool.No)
 
     if mathop != "no_mathop":
         if testname != "multiple_tiles_eltwise_test":  # single tile option
