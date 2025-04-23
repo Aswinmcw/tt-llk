@@ -8,7 +8,10 @@ import torch
 
 def unpack_fp16(packed_list, unpack_src, pack_dst):
     def bytes_to_float16(byte_list):
-        return struct.unpack("<e", bytes(byte_list))[0]
+        bytes_data = b"\x00\x00" + bytes(byte_list)  # Ensure we include padding
+        unpacked_value = struct.unpack("<f", bytes_data)[0]
+        return unpacked_value
+        # return struct.unpack("<e", bytes(byte_list))[0]
 
     return [
         bytes_to_float16(packed_list[i : i + 2]) for i in range(0, len(packed_list), 2)
@@ -21,7 +24,7 @@ def unpack_bfp16(packed_list, unpack_src, pack_dst):
         unpacked_value = struct.unpack("<f", bytes_data)[0]
         return unpacked_value
     
-    # print(f"\npacked_list: {[int(byte) for byte in packed_list]}\n")
+    print(f"\npacked_list: {[int(byte) for byte in packed_list]}\n")
     return [
         bytes_to_bfloat16(packed_list[i : i + 2]) for i in range(0, len(packed_list), 2)
     ]

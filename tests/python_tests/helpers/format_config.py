@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional, Tuple
 
-
+DEST_ACCUMULATION = None
 class DataFormatInfo:
     """
     A helper class that encapsulates metadata for a data format.
@@ -31,6 +31,7 @@ class DataFormat(Enum):
     Bfp8_b = DataFormatInfo("Bfp8_b", 1)
     Float32 = DataFormatInfo("Float32", 4)
     Int32 = DataFormatInfo("Int32", 4)
+    Tf32 = DataFormatInfo("Tf32", 4)
 
     @property
     def size(self) -> int:
@@ -85,6 +86,7 @@ class FormatConfig:
     pack_dst: DataFormat
     math: DataFormat
 
+
     def __init__(
         self,
         unpack_A_src: DataFormat,
@@ -114,7 +116,6 @@ class FormatConfig:
                 )
             self.unpack_B_src = unpack_B_src
             self.unpack_B_dst = unpack_B_dst
-
 
 def create_formats_for_testing(formats: List[Tuple[DataFormat]]) -> List[FormatConfig]:
     """
@@ -176,3 +177,50 @@ def gen_format_combos():
                     if pack_out == DataFormat.Tf32:continue
                     generate_format_convs.append(FormatConfig(unpack_A_src=unpack_in, unpack_A_dst=unpack_out, pack_src=pack_in, pack_dst=pack_out, math=unpack_out))
     return generate_format_convs
+
+
+def gen_format_inference_combo(formats: Tuple[DataFormat], dest_acc: bool):
+    def is_exponent_b(format: DataFormat) -> int:
+        if format in [DataFormat.Float16_b, DataFormat.Bfp8_b, DataFormat.Tf32]:
+            return True
+        return False
+    input, output = formats
+    unpack_src = input
+    unpack_dst = input
+    pack_src = input
+    if dest_acc:
+        pack_src = output
+    pack_dst = output
+
+    if is_exponent_b(input) and not dest_acc and not is_exponent_b(output): 
+        #  this is not possible because packer doesn't convert exponent B to exponent A
+        #  set dest_acc to True
+        DEST_ACCUMULATION = True
+        pack_src = output
+    
+    return FormatConfig(unpack_src, unpack_dst, pack_src, pack_dst, unpack_src, same_src_format=True) #, dest_acc)
+
+def generate_input_output_for_testing():
+    list = [
+        (DataFormat.Bfp8_b, DataFormat.Float16),
+        (DataFormat.Bfp8_b, DataFormat.Float32),
+        (DataFormat.Bfp8_b, DataFormat.Float16_b),
+        (DataFormat.Bfp8_b, DataFormat.Bfp8_b),
+        
+        (DataFormat.Float16, DataFormat.Float16),
+        (DataFormat.Float16, DataFormat.Float32),
+        (DataFormat.Float16, DataFormat.Float16_b),
+        (DataFormat.Float16, DataFormat.Bfp8_b),
+        
+        (DataFormat.Float16_b, DataFormat.Float16),
+        (DataFormat.Float16_b, DataFormat.Float32),
+        (DataFormat.Float16_b, DataFormat.Float16_b),
+        (DataFormat.Float16_b, DataFormat.Bfp8_b),
+        
+        (DataFormat.Float32, DataFormat.Float16),
+        (DataFormat.Float32, DataFormat.Float32),
+        (DataFormat.Float32, DataFormat.Float16_b),
+        (DataFormat.Float32, DataFormat.Bfp8_b)
+    ]
+    
+    return [gen_format_inference_combo(format, False) for format in list]
