@@ -190,13 +190,16 @@ def gen_format_inference_combo(formats: Tuple[DataFormat], dest_acc: bool):
     pack_src = input
     if dest_acc:
         pack_src = output
-    pack_dst = output
-
-    if is_exponent_b(input) and not dest_acc and not is_exponent_b(output): 
+    elif is_exponent_b(input) and not is_exponent_b(output):
         #  this is not possible because packer doesn't convert exponent B to exponent A
         #  set dest_acc to True
-        DEST_ACCUMULATION = True
         pack_src = output
+    elif input == DataFormat.Float16 and output == DataFormat.Bfp8_b:
+        pack_src = output
+    pack_dst = output
+
+    
+    
     
     return FormatConfig(unpack_src, unpack_dst, pack_src, pack_dst, unpack_src, same_src_format=True) #, dest_acc)
 

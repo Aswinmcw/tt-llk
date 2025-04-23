@@ -71,10 +71,10 @@ generate_format_selection = create_formats_for_testing(
         #     DataFormat.Float16_b,  # index 4 is for math format
         # ),
         (
-            DataFormat.Float16_b,  # index 0 is for unpack_A_src
-            DataFormat.Float16_b,  # index 1 is for unpack_A_dst
+            DataFormat.Float16,  # index 0 is for unpack_A_src
+            DataFormat.Float16,  # index 1 is for unpack_A_dst
             DataFormat.Float16,  # index 2 is for pack_src (if src registers have same formats)
-            DataFormat.Float16,  # index 3 is for pack_dst
+            DataFormat.Bfp8_b,  # index 3 is for pack_dst
             DataFormat.Float16_b,  # index 4 is for math format
         ),
     ]

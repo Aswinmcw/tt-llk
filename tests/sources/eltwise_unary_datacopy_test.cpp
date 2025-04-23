@@ -63,8 +63,11 @@ constexpr bool modify_dest_acc(std::uint32_t input, std::uint32_t output) {
         return true;
     } else if (isExponentB(input) && !isExponentB(output)) {
         // Not possible: packer can't convert exponent B to exponent A
-        return true;
-        // return is_fp32_dest_acc_en;
+        return false;
+        // return true;
+    } else if (input == (uint32_t)DataFormat::Float16 && output == (uint32_t)DataFormat::Bfp8_b){
+        return false;
+        // return true;
     }
     return false;
 }
@@ -134,9 +137,9 @@ void run_kernel()
     std::fill(buffer_Dest, buffer_Dest + 16 * 16 * 4, 0xdeadbeef);
 
 #ifdef ARCH_BLACKHOLE
-    _llk_pack_hw_configure_<false, dest_acc, false>(PACK_IN, PACK_OUT, 16 * 16 * 4);
+    _llk_pack_hw_configure_<false, dest_acc, false>((uint32_t)2, PACK_OUT, 16 * 16 * 4);
 #else
-    _llk_pack_hw_configure_<false, dest_acc>(PACK_IN, PACK_OUT, 16 * 16 * 4);
+    _llk_pack_hw_configure_<false, dest_acc>((uint32_t)2, PACK_OUT, 16 * 16 * 4);
 #endif
 
     _llk_pack_init_<false, false, DstTileFaceLayout::RowMajor, false>(PACK_OUT);
