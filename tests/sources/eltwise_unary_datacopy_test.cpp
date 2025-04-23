@@ -63,8 +63,8 @@ constexpr bool modify_dest_acc(std::uint32_t input, std::uint32_t output) {
         return true;
     } else if (isExponentB(input) && !isExponentB(output)) {
         // Not possible: packer can't convert exponent B to exponent A
-        // return true;
-        return is_fp32_dest_acc_en;
+        return true;
+        // return is_fp32_dest_acc_en;
     }
     return false;
 }
