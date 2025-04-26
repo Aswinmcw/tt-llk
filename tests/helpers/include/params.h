@@ -29,9 +29,9 @@ constexpr std::underlying_type_t<DataFormat> get_data_format(DataFormat format)
 } // namespace
 
 #ifdef DEST_ACC
-const bool is_fp32_dest_acc_en = true;
+const bool dest_acc = true;
 #else
-const bool is_fp32_dest_acc_en = false;
+const bool dest_acc = false;
 #endif
 
 #if defined(UNPACK_A_SRC_INT32) || defined(UNPACK_A_SRC_FLOAT32) || defined(IN_FLOAT32) || defined(IN_INT32)
@@ -181,15 +181,15 @@ MATH_CASE(Bfp8_b)
 
 
 #if !defined(MATH_BFP8_B) && !defined(MATH_INT32) && !defined(MATH_FLOAT32) && !defined(MATH_FLOAT16) && !defined(MATH_FLOAT16_B)
-constexpr bool dest_acc = is_fp32_dest_acc_en || format_combo_is_outlier(UNPACK_A_IN, PACK_OUT, is_fp32_dest_acc_en);
-constexpr Formats pipeline_formats = get_data_formats(UNPACK_A_IN, PACK_OUT, is_fp32_dest_acc_en);
+constexpr bool is_fp32_dest_acc_en = dest_acc || format_combo_is_outlier(UNPACK_A_IN, PACK_OUT, dest_acc);
+constexpr Formats pipeline_formats = get_data_formats(UNPACK_A_IN, PACK_OUT, dest_acc);
 constexpr auto UNPACK_A_OUT = pipeline_formats.unpack_dst;
 constexpr auto UNPACK_B_IN = pipeline_formats.unpack_src;
 constexpr auto UNPACK_B_OUT = pipeline_formats.unpack_dst;
 constexpr auto PACK_IN = pipeline_formats.pack_src; 
 constexpr auto MATH_FORMAT = pipeline_formats.unpack_dst;
 #else
-constexpr bool dest_acc = is_fp32_dest_acc_en;
+constexpr bool is_fp32_dest_acc_en = dest_acc;
 #endif
 
 
