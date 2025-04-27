@@ -3,7 +3,7 @@
 
 from typing import List, Optional, Tuple
 from .format_arg_mapping import *
-from .format_config import FormatConfig, DataFormat, InputOutputFormat
+from .format_config import FormatConfig, DataFormat, InputOutputFormat, check_dest_acc_needed
 
 
 def manage_included_params(func):
@@ -237,7 +237,11 @@ def generate_param_ids(included_params, all_params: List[tuple]) -> List[str]:
                 f"pack_dst={format_config.pack_dst.name}",
             ]
         if params[0]:
-            result.append(f"dest_acc={params[0].name}")
+            if isinstance(format_config, InputOutputFormat):
+                if params[0] == DestAccumulation.No and check_dest_acc_needed(format_config):
+                    result.append(f"dest_acc={DestAccumulation.Yes.name}")
+                else:
+                    result.append(f"dest_acc={params[0].name}")
         if params[1]:
             result.append(f"approx_mode={params[1].value}")
         if params[2]:

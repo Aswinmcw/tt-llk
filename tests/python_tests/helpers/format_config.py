@@ -4,6 +4,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional, Tuple
+from conftest import add_to_format_log
 
 
 class DataFormatInfo:
@@ -120,6 +121,7 @@ class FormatConfig:
     
     def get_input_format(self) -> DataFormat:
         return self.unpack_A_src 
+    
 
 @dataclass
 class InputOutputFormat(FormatConfig):
@@ -134,12 +136,19 @@ class InputOutputFormat(FormatConfig):
     def __init__(self, input_format: DataFormat, output_format: DataFormat):
         self.input = input_format
         self.output = output_format
+        
+        if self.requires_dest_accumulation():
+            add_to_format_log(input_format, output_format)
     
     def get_output_format(self) -> DataFormat:
         return self.output
     
     def get_input_format(self) -> DataFormat:
         return self.input 
+    
+    def requires_dest_accumulation(self):
+        # Whatever your logic is
+        return check_dest_acc_needed(self)
 
 def generate_combination(formats: List[Tuple[DataFormat]]) -> List[FormatConfig]:
     """
@@ -187,3 +196,16 @@ def generate_combination(formats: List[Tuple[DataFormat]]) -> List[FormatConfig]
                 )
             )
     return format_configs
+
+def check_dest_acc_needed(format: InputOutputFormat) -> bool:
+    """
+    This function is called when a format configuration for input and output is called without dest accumulation.
+    If the input-output combination is an outlier that is not supported when dest accumulation is on 
+    then the data format inference model will turn dest accumulation off for this combination to work.
+    
+    We must notify the user that this has happened and cheange the test output to reflect this.
+    """
+    if format.get_input_format() in [DataFormat.Bfp8_b, DataFormat.Float16_b]  and format.get_output_format() == DataFormat.Float16:
+        return True
+    return False
+    
