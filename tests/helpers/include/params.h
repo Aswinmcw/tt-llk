@@ -34,7 +34,7 @@ const bool dest_acc = true;
 const bool dest_acc = false;
 #endif
 
-#if defined(UNPACK_A_SRC_INT32) || defined(UNPACK_A_SRC_FLOAT32) || defined(IN_FLOAT32) || defined(IN_INT32)
+#if defined(UNPACK_A_SRC_INT32) || defined(UNPACK_A_SRC_FLOAT32) 
 const bool unpack_to_dest = true;
 #else
 const bool unpack_to_dest = false;

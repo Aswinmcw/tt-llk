@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from .format_arg_mapping import *
 from .format_config import FormatConfig, DataFormat, InputOutputFormat
 
@@ -16,7 +16,7 @@ def manage_included_params(func):
 
 
 @manage_included_params
-def generate_format_combinations(
+def format_combination_sweep(
     included_params,
     formats: List[DataFormat],
     all_same: bool,
@@ -256,3 +256,68 @@ def generate_param_ids(included_params, all_params: List[tuple]) -> List[str]:
 
     # Generate and return formatted strings for all parameter combinations
     return [format_combination(comb) for comb in all_params if comb[0] is not None]
+
+def input_output_formats(formats: List[DataFormat]) -> List[InputOutputFormat]:
+    """
+    Generates a list of InputOutputFormat instances based on the given formats.
+
+    This function is used to create input-output format combinations for testing.
+
+    Parameters:
+    formats (List[DataFormat]): A list of formats that are supported for this test.
+
+    Returns:
+    List[InputOutputFormat]: A list of InputOutputFormat instances representing the generated format combinations.
+    """
+    input_output_list = []
+    for input in formats:
+        for output in formats:
+            input_output_list.append(InputOutputFormat(input, output))
+    return input_output_list
+
+def generate_combination(formats: List[Tuple[DataFormat]]) -> List[FormatConfig]:
+    """
+    A function that creates a list of FormatConfig objects from a list of DataFormat objects that client wants to test.
+    This function is useful for creating a list of FormatConfig objects for testing multiple formats combinations
+    and cases which the user has specifically defined and wants to particularly test instead of a full format flush.
+
+    Args:
+    formats (List[Tuple[DataFormat]]): A list of tuples of DataFormat objects for which FormatConfig objects need to be created.
+
+    Returns:
+    List[FormatConfig]: A list of FormatConfig objects created from the list of DataFormat objects passed as input.
+
+    Example:
+    >>> formats = [(DataFormat.Float16, DataFormat.Float32, DataFormat.Float16, DataFormat.Float32, DataFormat.Float32)]
+    >>> format_configs = generate_combination(formats)
+    >>> print(format_configs[0].unpack_A_src)
+    DataFormat.Float16
+    >>> print(format_configs[0].unpack_B_src)
+    DataFormat.Float16
+    """
+    format_configs = []
+    for format_tuple in formats:
+        if len(format_tuple) == 5:
+            format_configs.append(
+                FormatConfig(
+                    unpack_A_src=format_tuple[0],
+                    unpack_A_dst=format_tuple[1],
+                    pack_src=format_tuple[2],
+                    pack_dst=format_tuple[3],
+                    math=format_tuple[4],
+                )
+            )
+        else:
+            format_configs.append(
+                FormatConfig(
+                    unpack_A_src=format_tuple[0],
+                    unpack_A_dst=format_tuple[1],
+                    unpack_B_src=format_tuple[2],
+                    unpack_B_dst=format_tuple[3],
+                    pack_src=format_tuple[4],
+                    pack_dst=format_tuple[5],
+                    math=format_tuple[6],
+                    same_src_format=False,
+                )
+            )
+    return format_configs

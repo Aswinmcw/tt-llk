@@ -141,7 +141,7 @@ class InputOutputFormat(FormatConfig):
     def get_input_format(self) -> DataFormat:
         return self.input 
 
-def create_formats_for_testing(formats: List[Tuple[DataFormat]]) -> List[FormatConfig]:
+def generate_combination(formats: List[Tuple[DataFormat]]) -> List[FormatConfig]:
     """
     A function that creates a list of FormatConfig objects from a list of DataFormat objects that client wants to test.
     This function is useful for creating a list of FormatConfig objects for testing multiple formats combinations
@@ -155,7 +155,7 @@ def create_formats_for_testing(formats: List[Tuple[DataFormat]]) -> List[FormatC
 
     Example:
     >>> formats = [(DataFormat.Float16, DataFormat.Float32, DataFormat.Float16, DataFormat.Float32, DataFormat.Float32)]
-    >>> format_configs = create_formats_for_testing(formats)
+    >>> format_configs = generate_combination(formats)
     >>> print(format_configs[0].unpack_A_src)
     DataFormat.Float16
     >>> print(format_configs[0].unpack_B_src)

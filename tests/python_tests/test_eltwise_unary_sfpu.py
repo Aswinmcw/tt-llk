@@ -23,39 +23,47 @@ def generate_golden(operation, operand1, data_format):
     return [ops[operation](num) for num in tensor1_float.tolist()][:256]
 
 
-full_sweep = False
-all_format_combos = generate_format_combinations(
-    [DataFormat.Float16_b, DataFormat.Float16, DataFormat.Float32],
-    all_same=True,
-    same_src_reg_format=True,  # setting src_A and src_B register to have same format
-)  # Generate format combinations with all formats being the same (flag set to True), refer to `param_config.py` for more details.
+# SUPPORTED FORMATS FOR TEST 
+supported_formats = [DataFormat.Float32, DataFormat.Float16, DataFormat.Float16_b]
+
+#   INPUT-OUTPUT FORMAT SWEEP 
+#   input_output_formats(supported_formats)
+
+#   FULL FORMAT SWEEP 
+#   format_combination_sweep(formats=supported_formats, all_same=False, same_src_reg_format=True)
+
+#   SPECIFIC FORMAT COMBINATION
+#   generate_combination(
+    #       [(DataFormat.Float16_b,  # index 0 is for unpack_A_src
+    #         DataFormat.Float16_b,  # index 1 is for unpack_A_dst
+    #         DataFormat.Float16_b,  # index 2 is for pack_src (if src registers have same formats)
+    #         DataFormat.Bfp8_b,  # index 3 is for pack_dst
+    #         DataFormat.Float16_b,  # index 4 is for math format)])
+
+#   SPECIFIC INPUT-OUTPUT COMBINATION 
+#   [InputOutputFormat(DataFormat.Float16, DataFormat.Float32)]
+
+test_formats = input_output_formats(supported_formats)
 all_params = generate_params(
     ["eltwise_unary_sfpu_test"],
-    all_format_combos,
+    test_formats,
     dest_acc=[DestAccumulation.No, DestAccumulation.Yes],
     approx_mode=[ApproximationMode.No, ApproximationMode.Yes],
     mathop=[MathOperation.Sqrt, MathOperation.Log, MathOperation.Square],
 )
 param_ids = generate_param_ids(all_params)
-
-
 @pytest.mark.parametrize(
     "testname, formats, dest_acc, approx_mode, mathop",
     clean_params(all_params),
     ids=param_ids,
 )
-def test_eltwise_unary_sfpu(testname, formats, dest_acc, approx_mode, mathop):  #
-    if (
-        formats.get_input_format() in [DataFormat.Float32, DataFormat.Int32]
-        and dest_acc != DestAccumulation.Yes
-    ):
-        pytest.skip(
-            reason="Skipping test for 32 bit wide data without 32 bit accumulation in Dest"
-        )
-    if formats.get_input_format() == DataFormat.Float16 and (
-        (dest_acc == DestAccumulation.No and get_chip_architecture() == "blackhole")
-        or (dest_acc == DestAccumulation.Yes and get_chip_architecture() == "wormhole")
-    ):
+def test_eltwise_unary_sfpu(testname, formats, dest_acc, approx_mode, mathop):  
+    if (formats.get_input_format() in [DataFormat.Float32, DataFormat.Int32]
+        and dest_acc != DestAccumulation.Yes):
+        pytest.skip(reason="Skipping test for 32 bit wide data without 32 bit accumulation in Dest")
+    if (formats.get_input_format() == DataFormat.Float16 and (
+        (dest_acc == DestAccumulation.No and get_chip_architecture() == "blackhole"))
+        or (dest_acc == DestAccumulation.Yes and get_chip_architecture() == "wormhole")):
         pytest.skip(reason="This combination is not fully implemented in testing")
 
     src_A, src_B = generate_stimuli(
@@ -77,12 +85,8 @@ def test_eltwise_unary_sfpu(testname, formats, dest_acc, approx_mode, mathop):  
     run_elf_files(testname)
 
     wait_for_tensix_operations_finished()
-    res_from_L1 = collect_results(
-        formats, tensor_size=len(src_A)
-    )  # Bug patchup in (unpack.py): passing formats struct to check unpack_src with pack_dst and distinguish when input and output formats have different exponent widths then reading from L1 changes
-    res_from_L1 = res_from_L1[
-        :256
-    ]  # this will be removed once we implement to read bytes from L1 according to data format (size of datum) which will be added in next PR
+    res_from_L1 = collect_results(formats, tensor_size=len(src_A))  
+    res_from_L1 = res_from_L1[:256]
     assert len(res_from_L1) == len(golden)
 
     golden_tensor = torch.tensor(
