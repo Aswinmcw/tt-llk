@@ -52,7 +52,12 @@ all_params = generate_params(
     ["matmul_test"],
     test_formats,
     dest_acc=[DestAccumulation.No, DestAccumulation.Yes],
-    math_fidelity=[MathFidelity.HiFi3, MathFidelity.HiFi4],
+    math_fidelity=[
+        MathFidelity.LoFi,
+        MathFidelity.HiFi2,
+        MathFidelity.HiFi3,
+        MathFidelity.HiFi4,
+    ],
 )
 param_ids = generate_param_ids(all_params)
 
