@@ -7,7 +7,7 @@ on:
 
 jobs:
   trigger-uplift:
-    uses: tenstorrent/tt-metal/.github/workflows/uplift-llk.yml@main
+    uses: Aswinmcw/tt-metal/.github/workflows/uplift-llk.yml@main
     with:
       llk_sha: ${{ github.sha }}
     permissions:
