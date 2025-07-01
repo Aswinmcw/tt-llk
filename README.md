@@ -21,7 +21,7 @@ This repository contains header-only low-level kernels (LLK) for Tenstorrent AI 
 
 These kernels serve as foundational compute primitives, acting as building blocks for higher-level software stacks that implement machine learning (ML) operations.
 
-Additionally, the repository includes a test environment designed to validate LLK APIs.
+Additionally, the repository includes a test environment designed to validate LLK APIs.f
 
 ## Install ##
 
