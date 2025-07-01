@@ -1,15 +1,16 @@
-name: Trigger tt-metal Uplift
+name: Trigger tt-metal CI
 
 on:
   push:
-    branches:
-      - main-like # need to change to main once verified
+    branches: [main-like]
 
 jobs:
-  trigger-uplift:
-    uses: Aswinmcw/tt-metal/.github/workflows/uplift-llk.yml@main
-    with:
-      llk_sha: ${{ github.sha }}
-    permissions:
-      contents: write
-      pull-requests: write
+  trigger-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send dispatch event
+        run: |
+          curl -X POST https://api.github.com/repos/Aswinmcw/tt-metal/dispatches \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.TT_METAL_PAT }}" \
+            -d '{"event_type": "trigger-ci", "client_payload": {"source": "tt-llk"}}'
